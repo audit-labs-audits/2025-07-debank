@@ -1,0 +1,257 @@
+{
+  "title": "2.1: misc: Overview",
+  "id": "jwFMrZoZbLEktdHdbloK89HMeIYcy4nikhHaST7D4VI=",
+  "originalId": 4560,
+  "position": 2,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This tour provides a high-level overview of the library contracts in the `misc` component, diving into implementation patterns, usage in the `Router`’s flow, and design trade-offs.",
+      "title": "",
+      "id": "54479"
+    },
+    {
+      "type": "highlight",
+      "description": "`Admin.sol` maintains a per-admin pause vote tally and enforces multi-admin consensus for unpausing, guarding critical entrypoints.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 31,
+          "end": 34
+        }
+      ],
+      "title": "",
+      "id": "54480"
+    },
+    {
+      "type": "highlight",
+      "description": "**Pause/unpause logic** records each admin’s vote and only allows unpause if fewer than two admins have voted to pause. A vote count threshold of 2 locks the contract until at least two admins agree to unpause.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 56,
+          "end": 72
+        }
+      ],
+      "title": "",
+      "id": "54481"
+    },
+    {
+      "type": "mcq",
+      "description": "An auditor reviews `Admin.sol` and notes that `pause()` increments `pauseCount`, but `unpause()` does not decrement it. If two different admins call `pause()`, what is the consequence for the contract's paused state according to the logic in `unpause()`?\n\nOptions:\n\n A). The contract can be unpaused if any single admin calls `unpause()`.\n\nB). The contract can be unpaused only if the two admins who paused it also call `unpause()`.\n\nC). The contract is effectively permanently paused and cannot be unpaused via the `unpause()` function.\n\nD). The contract automatically unpauses once `pauseCount` is greater than `adminPaused` votes.\n\n\nCorrect: C). The contract is effectively permanently paused and cannot be unpaused via the `unpause()` function.\n\nExplanation: The correct answer is that the contract becomes permanently paused via the `unpause()` function. The function requires `pauseCount < 2`. If two admins call `pause()`, `pauseCount` becomes 2. The `unpause()` function does not have a mechanism to decrement `pauseCount`, so the `require` condition will fail indefinitely, preventing the contract from being unpaused through this function.",
+      "title": "",
+      "id": "54497",
+      "text": "An auditor reviews `Admin.sol` and notes that `pause()` increments `pauseCount`, but `unpause()` does not decrement it. If two different admins call `pause()`, what is the consequence for the contract's paused state according to the logic in `unpause()`?",
+      "answers": [
+        "The contract can be unpaused if any single admin calls `unpause()`.",
+        "The contract can be unpaused only if the two admins who paused it also call `unpause()`.",
+        "The contract is effectively permanently paused and cannot be unpaused via the `unpause()` function.",
+        "The contract automatically unpauses once `pauseCount` is greater than `adminPaused` votes."
+      ],
+      "correct": 2,
+      "explanation": "The correct answer is that the contract becomes permanently paused via the `unpause()` function. The function requires `pauseCount < 2`. If two admins call `pause()`, `pauseCount` becomes 2. The `unpause()` function does not have a mechanism to decrement `pauseCount`, so the `require` condition will fail indefinitely, preventing the contract from being unpaused through this function."
+    },
+    {
+      "type": "highlight",
+      "description": "The `Router`’s `swap` function uses `whenNotPaused` to block swaps when paused, ensuring administrative safety controls in the swap flow.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 65,
+          "end": 68
+        }
+      ],
+      "title": "",
+      "id": "54482"
+    },
+    {
+      "type": "highlight",
+      "description": "Adapter management in the Router is guarded by `onlyAdmin`, so only authorized admins can add or remove adapters.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 117,
+          "end": 120
+        }
+      ],
+      "title": "",
+      "id": "54483"
+    },
+    {
+      "type": "highlight",
+      "description": "`UniversalERC20.sol` abstracts **ETH** vs. **ERC20** handling: a sentinel **ETH** address and helpers let callers treat both asset types uniformly, reducing branching in application code.",
+      "file": "swap-router-v1/src/library/UniversalERC20.sol",
+      "highlight": [
+        {
+          "start": 13,
+          "end": 21
+        }
+      ],
+      "title": "",
+      "id": "54484"
+    },
+    {
+      "type": "highlight",
+      "description": "In the **Router flow**, `universalBalanceOf` measures both **ETH** and **ERC20** balances before/after swaps, and `universalTransfer` sends results back to users without separate **ETH** logic.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 80,
+          "end": 88
+        }
+      ],
+      "title": "",
+      "id": "54485"
+    },
+    {
+      "type": "highlight",
+      "description": "`SignedDecimalMath.sol` defines `ONE = 1e18` and `SignedONE = 10**18` to support 18-decimal fixed-point arithmetic with signed and unsigned types, rounding down to avoid overcharging or oversplitting.",
+      "file": "swap-router-v1/src/library/SignedDecimalMath.sol",
+      "highlight": [
+        {
+          "start": 10,
+          "end": 27
+        }
+      ],
+      "title": "",
+      "id": "54486"
+    },
+    {
+      "type": "highlight",
+      "description": "Fees are charged in the `Router` using `decimalMul`, ensuring `fee = (amount * rate) / 1e18`. Rounding down means users keep any dust leftover.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 106,
+          "end": 109
+        }
+      ],
+      "title": "",
+      "id": "54487"
+    },
+    {
+      "type": "highlight",
+      "description": "In the `Executor`, route-splitting uses `decimalMul` on percentages (`percent` fields) to allocate slices; the final slice uses full balance to absorb rounding dust, ensuring no value is lost.",
+      "file": "swap-router-v1/src/executor/Executor.sol",
+      "highlight": [
+        {
+          "start": 44,
+          "end": 54
+        }
+      ],
+      "title": "",
+      "id": "54488"
+    },
+    {
+      "type": "highlight",
+      "description": "`Utils.sol` provides nested data structures—`MultiPath`, `SinglePath`, `Adapter`, `SimpleSwap`, and `UniswapV3Data`—to represent multi-hop, multi-DEX routes with percentage splits, enabling flexible routing strategies.",
+      "file": "swap-router-v1/src/library/Utils.sol",
+      "highlight": [
+        {
+          "start": 9,
+          "end": 18
+        }
+      ],
+      "title": "",
+      "id": "54489"
+    },
+    {
+      "type": "highlight",
+      "description": "The **Router** accepts a `Utils.MultiPath[] paths` parameter and forwards it to the **Executor**, seamlessly chaining complex route definitions into on-chain execution.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 60,
+          "end": 65
+        }
+      ],
+      "title": "",
+      "id": "54490"
+    },
+    {
+      "type": "mcq",
+      "description": "In `Executor.sol`, the amount for the final swap path is assigned the contract's entire remaining token balance instead of being calculated via `decimalMul`. What is the primary reason for this design choice?\n\nOptions:\n\n A). To optimize gas by avoiding a `decimalMul` operation on the final iteration of the loop.\n\nB). To ensure any residual tokens from rounding down in previous percentage calculations are included in the final swap.\n\nC). To prevent over-allocation in case the sum of `paths[i].percent` exceeds `SignedDecimalMath.ONE`.\n\n\nCorrect: B). To ensure any residual tokens from rounding down in previous percentage calculations are included in the final swap.\n\nExplanation: The correct answer is that this logic prevents value loss from rounding. `decimalMul` uses integer division, which rounds down. This can leave small amounts of tokens (dust) after calculating each percentage-based slice. By assigning the entire remaining balance to the final path, the contract ensures all tokens are swapped. Gas optimization is not the primary goal, and a separate `require` statement on line 54 prevents over-allocation.",
+      "title": "",
+      "id": "54498",
+      "text": "In `Executor.sol`, the amount for the final swap path is assigned the contract's entire remaining token balance instead of being calculated via `decimalMul`. What is the primary reason for this design choice?",
+      "answers": [
+        "To optimize gas by avoiding a `decimalMul` operation on the final iteration of the loop.",
+        "To ensure any residual tokens from rounding down in previous percentage calculations are included in the final swap.",
+        "To prevent over-allocation in case the sum of `paths[i].percent` exceeds `SignedDecimalMath.ONE`."
+      ],
+      "correct": 1,
+      "explanation": "The correct answer is that this logic prevents value loss from rounding. `decimalMul` uses integer division, which rounds down. This can leave small amounts of tokens (dust) after calculating each percentage-based slice. By assigning the entire remaining balance to the final path, the contract ensures all tokens are swapped. Gas optimization is not the primary goal, and a separate `require` statement on line 54 prevents over-allocation."
+    },
+    {
+      "type": "highlight",
+      "description": "Executor’s `executeMegaSwap` iterates `MultiPath` slices, computes slice amounts via `percent`, and calls `executeMultiPath` for each, then aggregates the output back to the Router.",
+      "file": "swap-router-v1/src/executor/Executor.sol",
+      "highlight": [
+        {
+          "start": 44,
+          "end": 51
+        }
+      ],
+      "title": "",
+      "id": "54491"
+    },
+    {
+      "type": "highlight",
+      "description": "`UniswapV2Lib.sol` declares `POOL_INIT_CODE_HASH` for off-chain pair address derivation, and provides `sortTokens` and `getAmountOut` matching Uniswap V2’s fee model, customizable via `fee/denFee`.",
+      "file": "swap-router-v1/src/library/UniswapV2Lib.sol",
+      "highlight": [
+        {
+          "start": 10,
+          "end": 16
+        }
+      ],
+      "title": "",
+      "id": "54492"
+    },
+    {
+      "type": "highlight",
+      "description": "In `UniswapV2Executor`, the pool’s reserves are fetched and `getAmountOut` calculates output with the configured fee, then `swap` is called on the pair contract—mirroring **Uniswap V2** logic on-chain.",
+      "file": "swap-router-v1/src/executor/uniswap/UniswapV2Executor.sol",
+      "highlight": [
+        {
+          "start": 31,
+          "end": 36
+        }
+      ],
+      "title": "",
+      "id": "54493"
+    },
+    {
+      "type": "highlight",
+      "description": "`UniswapV3Lib.sol` defines protocol bounds `MIN_SQRT_RATIO` and `MAX_SQRT_RATIO`, ensuring price limits remain within Uniswap V3’s valid tick range and avoiding overflow or underflow.",
+      "file": "swap-router-v1/src/library/UniswapV3Lib.sol",
+      "highlight": [
+        {
+          "start": 8,
+          "end": 12
+        }
+      ],
+      "title": "",
+      "id": "54494"
+    },
+    {
+      "type": "highlight",
+      "description": "`UniswapV3Executor` uses these constants to default `sqrtPriceLimitX96` when none is provided, choosing `MIN+1` or `MAX-1` to avoid locking at the exact boundary, and falls back to user-provided limits otherwise.",
+      "file": "swap-router-v1/src/executor/uniswap/UniswapV3Executor.sol",
+      "highlight": [
+        {
+          "start": 31,
+          "end": 34
+        }
+      ],
+      "title": "",
+      "id": "54495"
+    },
+    {
+      "type": "textOnly",
+      "description": "These libraries together enforce secure admin controls, unify token handling, guarantee precise decimal math, structure complex swap routes, and integrate with `Uniswap V2/V3`—all designed for safety, gas efficiency, and accurate execution.",
+      "title": "",
+      "id": "54496"
+    }
+  ]
+}

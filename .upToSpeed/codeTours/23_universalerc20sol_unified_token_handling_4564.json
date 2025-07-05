@@ -1,0 +1,170 @@
+{
+  "title": "2.3: UniversalERC20.sol: Unified Token Handling",
+  "id": "kD1ki+vAfmydtVdE4DeJdQ4l3H8k2yLtYJzgRKASlTA=",
+  "originalId": 4564,
+  "position": 4,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This walkthrough explores the `UniversalERC20.sol` library, which provides a uniform interface for handling both native **ETH** and **ERC20** tokens throughout the swap-router-v1 codebase.",
+      "title": "",
+      "id": "54427"
+    },
+    {
+      "type": "highlight",
+      "description": "The library imports `SafeERC20` to guard ERC20 calls and declares a special constant **ETH** (`0xEeee…`) to represent native Ether alongside ERC20 tokens.",
+      "file": "swap-router-v1/src/library/UniversalERC20.sol",
+      "highlight": [
+        {
+          "start": 10,
+          "end": 14
+        }
+      ],
+      "title": "",
+      "id": "54428"
+    },
+    {
+      "type": "highlight",
+      "description": "This function sends tokens from the contract to a recipient. Notice the initial check to skip the transfer entirely if the `amount` is zero.\n\nThe core logic then checks if the `token` is ETH. If it is, the contract performs a native ETH transfer; otherwise, it uses the standard `safeTransfer` for ERC20 tokens.",
+      "file": "swap-router-v1/src/library/UniversalERC20.sol",
+      "highlight": [
+        {
+          "start": 15,
+          "end": 23
+        }
+      ],
+      "title": "",
+      "id": "54429"
+    },
+    {
+      "type": "highlight",
+      "description": "This function pulls a specified `amount` of a token from the `from` address to the `to` address. The logic branches on line 27 based on whether the token is ETH. If it is, native Ether is sent from this contract's balance. If it's an ERC20 token, the function uses `safeTransferFrom` on line 30 to perform the transfer.",
+      "file": "swap-router-v1/src/library/UniversalERC20.sol",
+      "highlight": [
+        {
+          "start": 25,
+          "end": 33
+        }
+      ],
+      "title": "",
+      "id": "54430"
+    },
+    {
+      "type": "mcq",
+      "description": "When `universalTransferFrom` is called with `UniversalERC20.ETH` as the token, what is the actual source of the funds being transferred?\n\nOptions:\n\n A). The transaction reverts because `universalTransferFrom` cannot be used with native ETH.\n\nB). The `from` address's balance, but only if an allowance was set via `approve`.\n\nC). The contract's own ETH balance (`address(this)`).\n\n\nCorrect: C). The contract's own ETH balance (`address(this)`).\n\nExplanation: Correct. When the token is native ETH, `universalTransferFrom` ignores the `from` parameter and executes `to.transfer(amount)`. This sends ETH from the contract's own balance, not from the specified `from` address. The other options are incorrect because the function contains specific logic to handle ETH, and this logic does not involve ERC20-style allowances.",
+      "title": "",
+      "id": "54440",
+      "text": "When `universalTransferFrom` is called with `UniversalERC20.ETH` as the token, what is the actual source of the funds being transferred?",
+      "answers": [
+        "The transaction reverts because `universalTransferFrom` cannot be used with native ETH.",
+        "The `from` address's balance, but only if an allowance was set via `approve`.",
+        "The contract's own ETH balance (`address(this)`)."
+      ],
+      "correct": 2,
+      "explanation": "Correct. When the token is native ETH, `universalTransferFrom` ignores the `from` parameter and executes `to.transfer(amount)`. This sends ETH from the contract's own balance, not from the specified `from` address. The other options are incorrect because the function contains specific logic to handle ETH, and this logic does not involve ERC20-style allowances."
+    },
+    {
+      "type": "highlight",
+      "description": "This function provides a unified way to check an account's balance, abstracting away the differences between ETH and ERC20 tokens.\n\nNotice the conditional logic. If the token is ETH, the function returns the account's native balance. Otherwise, it makes the standard `balanceOf` call on the ERC20 token contract. This lets callers snapshot balances for both kinds of assets without needing to write special handling for ETH.",
+      "file": "swap-router-v1/src/library/UniversalERC20.sol",
+      "highlight": [
+        {
+          "start": 35,
+          "end": 41
+        }
+      ],
+      "title": "",
+      "id": "54431"
+    },
+    {
+      "type": "highlight",
+      "description": "This helper function is the key to the library's dual functionality. All of the universal methods use this check to differentiate between native Ether and `ERC20` tokens, allowing them to branch their logic accordingly.",
+      "file": "swap-router-v1/src/library/UniversalERC20.sol",
+      "highlight": [
+        {
+          "start": 43,
+          "end": 45
+        }
+      ],
+      "title": "",
+      "id": "54432"
+    },
+    {
+      "type": "textOnly",
+      "description": "Note that there is no `universalApprove` here: approvals still use `SafeERC20`’s `safeApprove` or custom patterns (e.g., `forceApprove`) in adapters and executors.",
+      "title": "",
+      "id": "54433"
+    },
+    {
+      "type": "highlight",
+      "description": "Before invoking the adapter via `spender`, DexSwap snapshots the output token balance with `universalBalanceOf`. This works uniformly for ETH or ERC20 tokens.",
+      "file": "swap-router-v1/src/aggregatorRouter/DexSwap.sol",
+      "highlight": [
+        {
+          "start": 142,
+          "end": 150
+        }
+      ],
+      "title": "",
+      "id": "54434"
+    },
+    {
+      "type": "highlight",
+      "description": "After the swap and slippage checks, it calls `universalTransfer` to send the resulting ETH or token back to the caller in one unified call.",
+      "file": "swap-router-v1/src/aggregatorRouter/DexSwap.sol",
+      "highlight": [
+        {
+          "start": 162,
+          "end": 163
+        }
+      ],
+      "title": "",
+      "id": "54435"
+    },
+    {
+      "type": "highlight",
+      "description": "Fee collection is unified too: when charging input fees it uses `universalTransferFrom`, and for output fees it uses `universalTransfer`, abstracting away the **ETH** vs. **ERC20** branching.",
+      "file": "swap-router-v1/src/aggregatorRouter/DexSwap.sol",
+      "highlight": [
+        {
+          "start": 188,
+          "end": 195
+        }
+      ],
+      "title": "",
+      "id": "54436"
+    },
+    {
+      "type": "highlight",
+      "description": "Adapters like `KyberAdapter` call `universalBalanceOf` on `address(this)` to determine how much ETH or token they currently hold before submitting external calls.",
+      "file": "swap-router-v1/src/aggregatorRouter/adapter/KyberAdapter.sol",
+      "highlight": [
+        {
+          "start": 33,
+          "end": 39
+        }
+      ],
+      "title": "",
+      "id": "54437"
+    },
+    {
+      "type": "highlight",
+      "description": "When returning funds—both unspent inputs and swap outputs—these adapters simply call `universalTransfer`, handling `ETH` and `ERC20` with the same abstraction.",
+      "file": "swap-router-v1/src/aggregatorRouter/adapter/KyberAdapter.sol",
+      "highlight": [
+        {
+          "start": 45,
+          "end": 52
+        }
+      ],
+      "title": "",
+      "id": "54438"
+    },
+    {
+      "type": "textOnly",
+      "description": "By centralizing the ETH vs. ERC20 branching in `UniversalERC20.sol`, the codebase avoids repetitive checks and keeps swap and adapter logic concise, maintainable, and less error-prone.",
+      "title": "",
+      "id": "54439"
+    }
+  ]
+}

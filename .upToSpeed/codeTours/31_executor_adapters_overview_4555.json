@@ -1,0 +1,100 @@
+{
+  "title": "3.1: Executor Adapters: Overview",
+  "id": "YheQtoYdxCmf//8Y5boWHcNw4AG0EZ1Hu1PUpvXVy2M=",
+  "originalId": 4555,
+  "position": 9,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This walkthrough locates the two `Adapter1` entry-points (`mainnet` and `xDai`) in `swap-router-v1` and surveys the per-protocol executor modules they delegate to.",
+      "title": "",
+      "id": "54392"
+    },
+    {
+      "type": "highlight",
+      "description": "In mainnet `Adapter1.sol`, the contract declaration with full inheritance list (lines 21–34) combines `IAdapter` and `executor` modules for all supported protocols.",
+      "file": "swap-router-v1/src/adapter/mainnet/Adapter1.sol",
+      "highlight": [
+        {
+          "start": 21,
+          "end": 34
+        }
+      ],
+      "title": "",
+      "id": "54393"
+    },
+    {
+      "type": "highlight",
+      "description": "In `xDai Adapter1.sol` (lines 20–31), the inheritance list omits `MakerPsmExecutor` and `VelodromeExecutor`, reflecting xDai’s available protocols.",
+      "file": "swap-router-v1/src/adapter/xDai/Adapter1.sol",
+      "highlight": [
+        {
+          "start": 20,
+          "end": 31
+        }
+      ],
+      "title": "",
+      "id": "54394"
+    },
+    {
+      "type": "mcq",
+      "description": "Based on the inheritance lists in `mainnet/Adapter1.sol` and `xDai/Adapter1.sol`, what is the primary architectural purpose of having separate adapter contracts for different networks?\n\nOptions:\n\n A). To implement fundamentally different swap routing logic within each adapter.\n\nB). To selectively include executor modules for protocols that are deployed on each specific network.\n\nC). To work around network-specific compiler versions or EVM opcodes that prevent a single contract from being deployed on both.\n\nD). To handle variations in the `IAdapter` interface required by each network.\n\n\nCorrect: B). To selectively include executor modules for protocols that are deployed on each specific network.\n\nExplanation: The correct answer is that separate adapters allow for selective inclusion of protocol executors. The key difference between the mainnet and xDai `Adapter1` contracts is the list of inherited `Executor` modules. This reflects the reality that not all DeFi protocols are deployed on every chain. For instance, `MakerPsmExecutor` and `VelodromeExecutor` are included in the mainnet adapter but not the xDai one, because those protocols are not on xDai. This approach keeps each adapter lean by only including code for protocols relevant to its target network. The other options are incorrect because the core routing logic and `IAdapter` interface are likely consistent, and the code does not suggest a compiler-related issue.",
+      "title": "",
+      "id": "54399",
+      "text": "Based on the inheritance lists in `mainnet/Adapter1.sol` and `xDai/Adapter1.sol`, what is the primary architectural purpose of having separate adapter contracts for different networks?",
+      "answers": [
+        "To implement fundamentally different swap routing logic within each adapter.",
+        "To selectively include executor modules for protocols that are deployed on each specific network.",
+        "To work around network-specific compiler versions or EVM opcodes that prevent a single contract from being deployed on both.",
+        "To handle variations in the `IAdapter` interface required by each network."
+      ],
+      "correct": 1,
+      "explanation": "The correct answer is that separate adapters allow for selective inclusion of protocol executors. The key difference between the mainnet and xDai `Adapter1` contracts is the list of inherited `Executor` modules. This reflects the reality that not all DeFi protocols are deployed on every chain. For instance, `MakerPsmExecutor` and `VelodromeExecutor` are included in the mainnet adapter but not the xDai one, because those protocols are not on xDai. This approach keeps each adapter lean by only including code for protocols relevant to its target network. The other options are incorrect because the core routing logic and `IAdapter` interface are likely consistent, and the code does not suggest a compiler-related issue."
+    },
+    {
+      "type": "highlight",
+      "description": "`UniswapV2Executor` defines a single `swapUniswapV2` function. It decodes `UniswapV2SwapArg`, transfers tokens to the pool, and executes the swap via `IUniswapV2Pair.swap`.",
+      "file": "swap-router-v1/src/executor/uniswap/UniswapV2Executor.sol",
+      "highlight": [
+        {
+          "start": 23,
+          "end": 41
+        }
+      ],
+      "title": "",
+      "id": "54395"
+    },
+    {
+      "type": "highlight",
+      "description": "`CurveV1Executor` defines `swapCurveV1`. Based on `curveV1SwapType`, it calls `exchange`, `exchange_underlying`, or `remove_liquidity_one_coin` on the Curve V1 pool.",
+      "file": "swap-router-v1/src/executor/curve/CurveV1Executor.sol",
+      "highlight": [
+        {
+          "start": 23,
+          "end": 41
+        }
+      ],
+      "title": "",
+      "id": "54396"
+    },
+    {
+      "type": "highlight",
+      "description": "`WethExecutor` defines `swapOnWeth`. It handles ETH↔WETH conversions by calling `withdraw` or `deposit` on the `WETH` contract.",
+      "file": "swap-router-v1/src/executor/weth/WethExecutor.sol",
+      "highlight": [
+        {
+          "start": 18,
+          "end": 30
+        }
+      ],
+      "title": "",
+      "id": "54397"
+    },
+    {
+      "type": "textOnly",
+      "description": "In summary, the two `Adapter1` entry-points assemble protocol executors via inheritance. Their `executeSimpleSwap` method dispatches each swap instruction to the appropriate `swapXxx` function in these modules.",
+      "title": "",
+      "id": "54398"
+    }
+  ]
+}

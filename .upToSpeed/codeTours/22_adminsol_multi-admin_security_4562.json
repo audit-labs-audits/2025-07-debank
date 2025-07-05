@@ -1,0 +1,127 @@
+{
+  "title": "2.2: Admin.sol: Multi-Admin Security",
+  "id": "wHDXJhhWKRr5og6OejDUvorGKRi1wrHYsjOy3olzaPU=",
+  "originalId": 4562,
+  "position": 3,
+  "steps": [
+    {
+      "type": "highlight",
+      "description": "Contract documentation declares key features:\n- **Three equal-privilege admins**\n- **Multi-admin consensus for pause/unpause**\n- **Safe admin replacement capability**",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 7,
+          "end": 14
+        }
+      ],
+      "title": "",
+      "id": "54468"
+    },
+    {
+      "type": "highlight",
+      "description": "These state variables implement the multi-admin model. `admins` stores the three admin addresses, while `adminPaused` and `pauseCount` track their votes to pause. Together, these determine the contract's global `paused` state.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 31,
+          "end": 35
+        }
+      ],
+      "title": "",
+      "id": "54469"
+    },
+    {
+      "type": "highlight",
+      "description": "Modifiers enforce access control:\n- `onlyAdmin`: requires `msg.sender` is one of the three admins\n- `whenNotPaused`: reverts if `paused == true`",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 40,
+          "end": 49
+        }
+      ],
+      "title": "",
+      "id": "54470"
+    },
+    {
+      "type": "highlight",
+      "description": "Any admin can call `pause()` to cast their vote. Notice that the contract becomes paused as soon as the first admin calls this function, ensuring a swift response in an emergency.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 56,
+          "end": 65
+        }
+      ],
+      "title": "",
+      "id": "54471"
+    },
+    {
+      "type": "highlight",
+      "description": "An admin can use this to retract their pause. If multiple admins have paused, the contract remains locked in the paused state.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 67,
+          "end": 79
+        }
+      ],
+      "title": "",
+      "id": "54472"
+    },
+    {
+      "type": "mcq",
+      "description": "Given a scenario where `admin1` and `admin2` have both successfully called the `pause()` function, what is the outcome if `admin1` then calls `unpause()`?\n\nOptions:\n\n A). The call succeeds, `pauseCount` is decremented to 1, but the contract remains paused.\n\nB). The transaction reverts because `pauseCount` is 2, failing the `require(pauseCount < 2)` check.\n\nC). The call succeeds, and the contract becomes unpaused because `admin1` is retracting their own pause action.\n\nD). The transaction reverts because `admin2` has not yet called `unpause`.\n\n\nCorrect: B). The transaction reverts because `pauseCount` is 2, failing the `require(pauseCount < 2)` check.\n\nExplanation: The correct answer is that the transaction reverts. The `unpause` function on line 68 has a specific check: `require(pauseCount < 2, \"Admin: cannot unpause when multiple admins paused\")`. Since both `admin1` and `admin2` have paused, `pauseCount` is 2. The condition `2 < 2` is false, causing the transaction to revert. This mechanism ensures that once a majority of admins (2 out of 3) agree to pause, a single admin cannot unilaterally unpause the system.",
+      "title": "",
+      "id": "54478",
+      "text": "Given a scenario where `admin1` and `admin2` have both successfully called the `pause()` function, what is the outcome if `admin1` then calls `unpause()`?",
+      "answers": [
+        "The call succeeds, `pauseCount` is decremented to 1, but the contract remains paused.",
+        "The transaction reverts because `pauseCount` is 2, failing the `require(pauseCount < 2)` check.",
+        "The call succeeds, and the contract becomes unpaused because `admin1` is retracting their own pause action.",
+        "The transaction reverts because `admin2` has not yet called `unpause`."
+      ],
+      "correct": 1,
+      "explanation": "The correct answer is that the transaction reverts. The `unpause` function on line 68 has a specific check: `require(pauseCount < 2, \"Admin: cannot unpause when multiple admins paused\")`. Since both `admin1` and `admin2` have paused, `pauseCount` is 2. The condition `2 < 2` is false, causing the transaction to revert. This mechanism ensures that once a majority of admins (2 out of 3) agree to pause, a single admin cannot unilaterally unpause the system."
+    },
+    {
+      "type": "highlight",
+      "description": "An admin can replace their own address using this function. Note the validation checks for the new address and the calling admin's paused state before the replacement occurs.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 81,
+          "end": 98
+        }
+      ],
+      "title": "",
+      "id": "54473"
+    },
+    {
+      "type": "highlight",
+      "description": "The contract emits events for pausing, unpausing, and updating admins.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 36,
+          "end": 38
+        }
+      ],
+      "title": "",
+      "id": "54474"
+    },
+    {
+      "type": "highlight",
+      "description": "The `Router` contract inherits from `Admin`, allowing it to use the `whenNotPaused` modifier. Applying this to the `swap` function ensures that swaps are blocked when the contract is paused by admins.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 56,
+          "end": 65
+        }
+      ],
+      "title": "",
+      "id": "54475"
+    }
+  ]
+}

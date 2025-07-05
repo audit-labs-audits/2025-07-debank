@@ -1,0 +1,215 @@
+{
+  "title": "1.1: General Overview",
+  "id": "0mhcy+/xdlE2NHW1G44yjcff/YDGe9IVf33WFBQBvk4=",
+  "originalId": 4550,
+  "position": 1,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This tour provides a high-level overview of the `swap-router-v1` codebase, introducing its main components and how they interact.",
+      "title": "",
+      "id": "54441"
+    },
+    {
+      "type": "textOnly",
+      "description": "The `swap-router-v1` system is a DEX aggregator and router designed to split and route swaps across multiple DEXs via adapters. Its primary modules are **Router**, **Executor**, **DexSwap**, **Spender**, utility libraries, and protocol adapters.",
+      "title": "",
+      "id": "54442"
+    },
+    {
+      "type": "highlight",
+      "description": "The `Router` contract (lines 28–35) inherits `Admin` and `ReentrancyGuard` and declares `maxFeeRate` and an immutable `executor` for swap execution.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 28,
+          "end": 35
+        }
+      ],
+      "title": "",
+      "id": "54443"
+    },
+    {
+      "type": "highlight",
+      "description": "The `swap` function signature (lines 56–65) defines parameters for tokens, amounts, fee options, the fee receiver, and the `MultiPath[]` routes. It’s `external`, `payable`, and guarded by `whenNotPaused` and `nonReentrant`.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 56,
+          "end": 65
+        }
+      ],
+      "title": "",
+      "id": "54444"
+    },
+    {
+      "type": "highlight",
+      "description": "In `swap` (lines 71–83): if `feeOnFromToken` is true, charge the input fee (line 73). Then transfer tokens to the **Executor** (lines 76–78) and invoke `executor.executeMegaSwap`, forwarding ETH if needed (line 83).",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 71,
+          "end": 83
+        }
+      ],
+      "title": "",
+      "id": "54445"
+    },
+    {
+      "type": "highlight",
+      "description": "After execution (lines 89–99): if `fee on output`, charge it (line 91), enforce `slippage` (line 95), transfer the result to the user (line 98), and emit the **Swap** event.",
+      "file": "swap-router-v1/src/router/Router.sol",
+      "highlight": [
+        {
+          "start": 89,
+          "end": 99
+        }
+      ],
+      "title": "",
+      "id": "54446"
+    },
+    {
+      "type": "highlight",
+      "description": "The Executor contract (lines 27–35) inherits `Ownable` and `ReentrancyGuard`. It maintains `whiteListAdapter` and `adapterList` (lines 32–33). The `onlyOwner` modifier on `executeMegaSwap` ensures only the Router (as owner) can call it.",
+      "file": "swap-router-v1/src/executor/Executor.sol",
+      "highlight": [
+        {
+          "start": 27,
+          "end": 35
+        }
+      ],
+      "title": "",
+      "id": "54447"
+    },
+    {
+      "type": "highlight",
+      "description": "`executeMegaSwap` (lines 37–56) reads the contract’s `fromToken` balance, splits it per `MultiPath.percent`, calls `executeMultiPath`, verifies `totalPercent == ONE` (line 54), and transfers all `toToken` back to the caller (line 56).",
+      "file": "swap-router-v1/src/executor/Executor.sol",
+      "highlight": [
+        {
+          "start": 37,
+          "end": 56
+        }
+      ],
+      "title": "",
+      "id": "54448"
+    },
+    {
+      "type": "highlight",
+      "description": "Within `executeMultiPath` (lines 69–81): for each adapter slice, it checks the adapter is whitelisted (line 72), calculates its slice amount (line 74), and `delegatecalls` the adapter (line 77). On failure, it bubbles up the adapter’s revert reason via **assembly** (lines 82–88).",
+      "file": "swap-router-v1/src/executor/Executor.sol",
+      "highlight": [
+        {
+          "start": 69,
+          "end": 81
+        }
+      ],
+      "title": "",
+      "id": "54449"
+    },
+    {
+      "type": "mcq",
+      "description": "In **`DEXs`**, swap logic from various **`DEXs`** is executed via `delegatecall` to adapters. What is the primary security mechanism that protects the `Executor`'s funds and state from a malicious adapter being passed in the `paths` data?\n\nOptions:\n\n A). The `onlyOwner` modifier on `executeMegaSwap`.\n\nB). The `whiteListAdapter` check performed before every `delegatecall`.\n\nC). The `nonReentrant` modifier on `executeMegaSwap`.\n\n\nCorrect: B). The `whiteListAdapter` check performed before every `delegatecall`.\n\nExplanation: The `delegatecall` executes adapter code in the context of the `Executor`. Without a whitelist, a user could provide a malicious contract address as an adapter, which would then have control over the `Executor`'s state and funds. The `whiteListAdapter` check ensures that only admin-approved, audited adapters can be executed. While `onlyOwner` and `nonReentrant` are important, they do not protect against a malicious adapter address supplied in the call data.",
+      "title": "",
+      "id": "54476",
+      "text": "In **`DEXs`**, swap logic from various **`DEXs`** is executed via `delegatecall` to adapters. What is the primary security mechanism that protects the `Executor`'s funds and state from a malicious adapter being passed in the `paths` data?",
+      "answers": [
+        "The `onlyOwner` modifier on `executeMegaSwap`.",
+        "The `whiteListAdapter` check performed before every `delegatecall`.",
+        "The `nonReentrant` modifier on `executeMegaSwap`."
+      ],
+      "correct": 1,
+      "explanation": "The `delegatecall` executes adapter code in the context of the `Executor`. Without a whitelist, a user could provide a malicious contract address as an adapter, which would then have control over the `Executor`'s state and funds. The `whiteListAdapter` check ensures that only admin-approved, audited adapters can be executed. While `onlyOwner` and `nonReentrant` are important, they do not protect against a malicious adapter address supplied in the call data."
+    },
+    {
+      "type": "highlight",
+      "description": "In `DexSwap._swap` (lines 142–150), after charging the input fee and transferring tokens to `Spender`, it calls `spender.swap` with the adapter address and encoded calldata, delegating the actual swap execution.",
+      "file": "swap-router-v1/src/aggregatorRouter/DexSwap.sol",
+      "highlight": [
+        {
+          "start": 142,
+          "end": 150
+        }
+      ],
+      "title": "",
+      "id": "54450"
+    },
+    {
+      "type": "highlight",
+      "description": "`Spender.swap` (lines 24–28) ensures only `DexSwap` can invoke it (line 25), that the adapter is non-zero (line 26), and delegates execution to the adapter in an isolated context for safety.",
+      "file": "swap-router-v1/src/aggregatorRouter/Spender.sol",
+      "highlight": [
+        {
+          "start": 24,
+          "end": 28
+        }
+      ],
+      "title": "",
+      "id": "54451"
+    },
+    {
+      "type": "highlight",
+      "description": "`UniversalERC20` (lines 15–23) abstracts **ETH** vs ERC20: `isETH` (line 43) detects **ETH**; `universalTransfer` and `universalTransferFrom` handle safe ERC20 transfers or **ETH** sends accordingly.",
+      "file": "swap-router-v1/src/library/UniversalERC20.sol",
+      "highlight": [
+        {
+          "start": 15,
+          "end": 23
+        }
+      ],
+      "title": "",
+      "id": "54452"
+    },
+    {
+      "type": "highlight",
+      "description": "`Utils` (lines 7–24) defines nested structs: `MultiPath` (percent and array of `SinglePath`), `SinglePath` (toToken and slices of `Adapter`), and `Adapter` (adapter address, percent, and `SimpleSwap` list) to represent complex split routes.",
+      "file": "swap-router-v1/src/library/Utils.sol",
+      "highlight": [
+        {
+          "start": 7,
+          "end": 24
+        }
+      ],
+      "title": "",
+      "id": "54453"
+    },
+    {
+      "type": "highlight",
+      "description": "`pause` (lines 56\u001264) lets any of the three admins pause the contract, tracking individual states with `adminPaused` and incrementing `pauseCount`.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 56,
+          "end": 64
+        }
+      ],
+      "title": "",
+      "id": "54454"
+    },
+    {
+      "type": "highlight",
+      "description": "`unpause` (lines 67–75) only succeeds if fewer than two admins have paused (line 68), enforcing a multi-admin consensus to resume operations.",
+      "file": "swap-router-v1/src/library/Admin.sol",
+      "highlight": [
+        {
+          "start": 67,
+          "end": 75
+        }
+      ],
+      "title": "",
+      "id": "54455"
+    },
+    {
+      "type": "textOnly",
+      "description": "The `src/executor` and `src/adapter` directories contain per-protocol executor modules (`UniswapV2`/`UniswapV3`/`UniswapV4`, `Curve`, `Balancer`, `MakerPSM`, `Velodrome`, `Weth`) and aggregator adapters (`Kyber`, `OneInch`, `Paraswap`, `Magpie`). Detailed tours will dive into each implementation.",
+      "title": "",
+      "id": "54456"
+    },
+    {
+      "type": "textOnly",
+      "description": "This concludes the high-level overview. Upcoming tours will cover libraries (`UniversalERC20`, `SignedDecimalMath`, `Utils`), security patterns (`Admin`), adapters, and per-protocol executors in depth.",
+      "title": "",
+      "id": "54457"
+    }
+  ]
+}

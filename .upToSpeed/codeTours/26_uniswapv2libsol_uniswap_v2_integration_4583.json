@@ -1,0 +1,125 @@
+{
+  "title": "2.6: UniswapV2Lib.sol: Uniswap V2 Integration",
+  "id": "o6cD2VlKE0QeZVKMN4SettJyrD6dYr9R0JYhWLo/HsA=",
+  "originalId": 4583,
+  "position": 7,
+  "steps": [
+    {
+      "type": "revealFiles",
+      "files": [
+        "swap-router-v1/src/library/UniswapV2Lib.sol"
+      ],
+      "description": "`UniswapV2Lib.sol` defines core **Uniswap V2** helper functions for token sorting, reserve fetching, and output computation for single-hop swaps.",
+      "title": "",
+      "id": "54664"
+    },
+    {
+      "type": "highlight",
+      "description": "`POOL_INIT_CODE_HASH` stores the init code hash for **Uniswap V2** pairs (used off-chain for address derivation). `sortTokens` enforces `token0<token1` ordering so downstream functions know which reserve is which.",
+      "file": "swap-router-v1/src/library/UniswapV2Lib.sol",
+      "highlight": [
+        {
+          "start": 9,
+          "end": 16
+        }
+      ],
+      "title": "",
+      "id": "54665"
+    },
+    {
+      "type": "highlight",
+      "description": "`getReserves` reads reserves from a given pair via `IUniswapV2Pair.getReserves()`, uses `sortTokens` to determine `token0`, and then returns `reserveA`/`reserveB` aligned to the original `tokenA`/`tokenB` order.",
+      "file": "swap-router-v1/src/library/UniswapV2Lib.sol",
+      "highlight": [
+        {
+          "start": 17,
+          "end": 26
+        }
+      ],
+      "title": "",
+      "id": "54666"
+    },
+    {
+      "type": "highlight",
+      "description": "`getAmountOut` implements Uniswap V2’s `x·y=k` formula with a configurable fee: it computes `amountInWithFee = amountIn*(denFee−fee)`, then `amountOut = (amountInWithFee * reserveOut) / (reserveIn * denFee + amountInWithFee)`. Common defaults: `fee=3`, `denFee=1000`.",
+      "file": "swap-router-v1/src/library/UniswapV2Lib.sol",
+      "highlight": [
+        {
+          "start": 28,
+          "end": 43
+        }
+      ],
+      "title": "",
+      "id": "54667"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "swap-router-v1/src/executor/uniswap/UniswapV2Executor.sol"
+      ],
+      "description": "**UniswapV2Executor.swapUniswapV2** leverages the **library** to perform a single-hop swap: it decodes `swap args`, transfers tokens to the pool, reads reserves, computes `amountOut`, and calls `pair.swap`.",
+      "title": "",
+      "id": "54668"
+    },
+    {
+      "type": "highlight",
+      "description": "`UniswapV2SwapArg` packs the pool address plus fee numerator (`fee`) and fee denominator (`denFee`) into bytes. `swapUniswapV2` decodes these to configure each swap.",
+      "file": "swap-router-v1/src/executor/uniswap/UniswapV2Executor.sol",
+      "highlight": [
+        {
+          "start": 13,
+          "end": 17
+        }
+      ],
+      "title": "",
+      "id": "54669"
+    },
+    {
+      "type": "highlight",
+      "description": "This function orchestrates the swap on a specific Uniswap V2 pool. First, it decodes the `data` argument to get pool-specific details and then transfers the input tokens directly to that pool contract. Next, it leverages our `UniswapV2Lib` to fetch the pool's current reserves and calculate the expected output amount. This is the key interaction with the library we're exploring. Finally, with all the parameters prepared, it makes the `swap` call on the Uniswap V2 pair contract to execute the trade and receive the output tokens.",
+      "file": "swap-router-v1/src/executor/uniswap/UniswapV2Executor.sol",
+      "highlight": [
+        {
+          "start": 23,
+          "end": 40
+        }
+      ],
+      "title": "",
+      "id": "54670"
+    },
+    {
+      "type": "mcq",
+      "description": "In `UniswapV2Executor.sol`, the `swapUniswapV2` function first transfers tokens to the pool (line 29) and **then** calls `UniswapV2Lib.getReserves` (line 32). What is the primary purpose of this specific sequence?\n\nOptions:\n\n A). `getReserves` is a `view` function and can only read the state after it has been modified by the `safeTransfer`.\n\nB). It allows the contract to calculate the precise `amountInActual` (line 34) by subtracting the pre-transfer reserves from the post-transfer balance.\n\nC). The `getReserves` function itself triggers the swap, so tokens must be present in the pool beforehand.\n\nD). It's a security measure to lock the pool contract before fetching its reserves, preventing reentrancy.\n\n\nCorrect: C). The `getReserves` function itself triggers the swap, so tokens must be present in the pool beforehand.\n\nExplanation: The correct answer is that this sequence is used to accurately determine the input amount. The `getReserves` call fetches the reserve state as it was *before* this transaction's transfer. The code then reads the pool's new balance (which includes the just-transferred tokens) and subtracts the old reserve value. The result, `amountInActual`, is the precise amount sent for this swap, which is then used to calculate the output. The other options are incorrect: `view` functions can be called at any time, `getReserves` does not trigger a swap, and this sequence is not a reentrancy guard.",
+      "title": "",
+      "id": "54673",
+      "text": "In `UniswapV2Executor.sol`, the `swapUniswapV2` function first transfers tokens to the pool (line 29) and **then** calls `UniswapV2Lib.getReserves` (line 32). What is the primary purpose of this specific sequence?",
+      "answers": [
+        "`getReserves` is a `view` function and can only read the state after it has been modified by the `safeTransfer`.",
+        "It allows the contract to calculate the precise `amountInActual` (line 34) by subtracting the pre-transfer reserves from the post-transfer balance.",
+        "The `getReserves` function itself triggers the swap, so tokens must be present in the pool beforehand.",
+        "It's a security measure to lock the pool contract before fetching its reserves, preventing reentrancy."
+      ],
+      "correct": 2,
+      "explanation": "The correct answer is that this sequence is used to accurately determine the input amount. The `getReserves` call fetches the reserve state as it was *before* this transaction's transfer. The code then reads the pool's new balance (which includes the just-transferred tokens) and subtracts the old reserve value. The result, `amountInActual`, is the precise amount sent for this swap, which is then used to calculate the output. The other options are incorrect: `view` functions can be called at any time, `getReserves` does not trigger a swap, and this sequence is not a reentrancy guard."
+    },
+    {
+      "type": "highlight",
+      "description": "`Adapter1` inherits `UniswapV2Executor`. In `executeSimpleSwap`, when `swapType` is 1, the contract calls `swapUniswapV2`. This shows how an adapter uses the **library** to execute a Uniswap V2 swap.",
+      "file": "swap-router-v1/src/adapter/mainnet/Adapter1.sol",
+      "highlight": [
+        {
+          "start": 60,
+          "end": 67
+        }
+      ],
+      "title": "",
+      "id": "54671"
+    },
+    {
+      "type": "textOnly",
+      "description": "`UniswapV2Lib.sol` handles only single-hop calculations. To support multi-hop swaps, adapters chain multiple `swapUniswapV2` calls in sequence: each hop’s output becomes the next hop’s input, realizing a full path.",
+      "title": "",
+      "id": "54672"
+    }
+  ]
+}

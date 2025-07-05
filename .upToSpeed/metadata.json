@@ -1,0 +1,39 @@
+{
+  "packageName": "2025-07-debank",
+  "packageVersion": 1,
+  "hash": "462ee395c626ffbc127c7451961df605bdf88c6b",
+  "numberOfTours": 9,
+  "titleOfTours": [
+    "1.1: General Overview",
+    "2.1: misc: Overview",
+    "2.2: Admin.sol: Multi-Admin Security",
+    "2.3: UniversalERC20.sol: Unified Token Handling",
+    "2.4: SignedDecimalMath.sol: Fixed-Point Arithmetic",
+    "2.6: UniswapV2Lib.sol: Uniswap V2 Integration",
+    "2.7: UniswapV3Lib.sol: Uniswap V3 Integration",
+    "3.1: Executor Adapters: Overview",
+    "4.1: Executor: Swap Execution Engine"
+  ],
+  "totalNumberOfSteps": 97,
+  "filesCovered": [
+    "swap-router-v1/src/router/Router.sol",
+    "swap-router-v1/src/executor/Executor.sol",
+    "swap-router-v1/src/aggregatorRouter/DexSwap.sol",
+    "swap-router-v1/src/aggregatorRouter/Spender.sol",
+    "swap-router-v1/src/library/UniversalERC20.sol",
+    "swap-router-v1/src/library/Utils.sol",
+    "swap-router-v1/src/library/Admin.sol",
+    "swap-router-v1/src/library/SignedDecimalMath.sol",
+    "swap-router-v1/src/library/UniswapV2Lib.sol",
+    "swap-router-v1/src/executor/uniswap/UniswapV2Executor.sol",
+    "swap-router-v1/src/library/UniswapV3Lib.sol",
+    "swap-router-v1/src/executor/uniswap/UniswapV3Executor.sol",
+    "swap-router-v1/src/aggregatorRouter/adapter/KyberAdapter.sol",
+    "swap-router-v1/src/adapter/mainnet/Adapter1.sol",
+    "swap-router-v1/src/executor/uniswap/IUniswapV3Router.sol",
+    "swap-router-v1/src/adapter/xDai/Adapter1.sol",
+    "swap-router-v1/src/executor/curve/CurveV1Executor.sol",
+    "swap-router-v1/src/executor/weth/WethExecutor.sol"
+  ],
+  "numberOfFilesCovered": 18
+}

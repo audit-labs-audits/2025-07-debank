@@ -1,0 +1,135 @@
+{
+  "title": "2.7: UniswapV3Lib.sol: Uniswap V3 Integration",
+  "id": "0hM8BW6X70ldvE8dYQuGgYkQJzGIcv9ljgIKivUi/6c=",
+  "originalId": 4552,
+  "position": 8,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This walkthrough explains how `UniswapV3Lib.sol` integrates with our router to execute Uniswap V3 swaps. We’ll cover:\n\n*   Constants guarding price limits\n*   The `UniswapV3Data` struct carrying swap parameters\n*   `swapUniswapV3` executor logic and its interaction with the V3 router\n*   How multi-hop paths are encoded in the router’s `bytes` path\n*   An example of an adapter calling `swapUniswapV3`",
+      "title": "",
+      "id": "54458"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "swap-router-v1/src/library/UniswapV3Lib.sol"
+      ],
+      "description": "`UniswapV3Lib.sol` defines X96 price-ratio bounds used when imposing a `sqrtPriceLimit` in V3 swaps.",
+      "title": "",
+      "id": "54459"
+    },
+    {
+      "type": "highlight",
+      "description": "`MIN_SQRT_RATIO` and `MAX_SQRT_RATIO` are the lower/upper `\\sqrt{priceX96}` values (derived from `Uniswap V3`’s `MIN_TICK` and `MAX_TICK`). They provide safe fallbacks when no custom price limit is set.",
+      "file": "swap-router-v1/src/library/UniswapV3Lib.sol",
+      "highlight": [
+        {
+          "start": 7,
+          "end": 12
+        }
+      ],
+      "title": "",
+      "id": "54460"
+    },
+    {
+      "type": "highlight",
+      "description": "`Utils.UniswapV3Data` packs parameters for a Uniswap V3 swap: the `router` address, an optional `sqrtX96` price limit, and the pool `fee`.",
+      "file": "swap-router-v1/src/library/Utils.sol",
+      "highlight": [
+        {
+          "start": 34,
+          "end": 38
+        }
+      ],
+      "title": "",
+      "id": "54461"
+    },
+    {
+      "type": "highlight",
+      "description": "`swapUniswapV3()`:\n\n1. Decode `Utils.UniswapV3Data` from `data`\n2. Compute `zeroForOne` flag (line 19)\n3. Approve `tokenIn` to the `router` (line 21)\n4. Call `router.exactInputSingle(...)` to perform the swap",
+      "file": "swap-router-v1/src/executor/uniswap/UniswapV3Executor.sol",
+      "highlight": [
+        {
+          "start": 17,
+          "end": 24
+        }
+      ],
+      "title": "",
+      "id": "54462"
+    },
+    {
+      "type": "highlight",
+      "description": "`exactInputSingle(ExactInputSingleParams02):`\n\n- `amountIn`, `tokenIn`, `tokenOut`, `fee`, `recipient`, `amountOutMinimum = 0`\n- `sqrtPriceLimitX96 = arg.sqrtX96 == 0 ? (min+1 or max−1) : arg.sqrtX96`\n\nUsing **MIN/MAX** ensures no unintended price cap if `sqrtX96` is left at `0`.",
+      "file": "swap-router-v1/src/executor/uniswap/UniswapV3Executor.sol",
+      "highlight": [
+        {
+          "start": 23,
+          "end": 35
+        }
+      ],
+      "title": "",
+      "id": "54463"
+    },
+    {
+      "type": "mcq",
+      "description": "In the `swapUniswapV3` function, if the `sqrtX96` field in the decoded `Utils.UniswapV3Data` is `0`, what is the effective `sqrtPriceLimitX96` passed to the Uniswap V3 router's `exactInputSingle` function?\n\nOptions:\n\n A). A value of `0`, indicating that no price limit is applied to the swap.\n\nB). The exact value of `UniswapV3Lib.MIN_SQRT_RATIO` or `UniswapV3Lib.MAX_SQRT_RATIO`, depending on the swap direction.\n\nC). A value slightly inside the pool's absolute price bounds (`MIN_SQRT_RATIO + 1` or `MAX_SQRT_RATIO - 1`), determined by the `zeroForOne` flag.\n\nD). The function call will revert, as a `sqrtPriceLimitX96` of `0` is considered an invalid parameter.\n\n\nCorrect: C). A value slightly inside the pool's absolute price bounds (`MIN_SQRT_RATIO + 1` or `MAX_SQRT_RATIO - 1`), determined by the `zeroForOne` flag.\n\nExplanation: The correct answer is C. The code explicitly handles the case where `arg.sqrtX96` is `0`. It uses this as a signal to apply a default, non-restrictive price limit. This limit is set to one unit inside the absolute minimum or maximum possible square root price ratio for a V3 pool, depending on the swap direction (`zeroForOne`). This prevents the swap from reverting due to a missing limit while ensuring it doesn't accidentally fail by hitting the exact tick boundary. Option A is incorrect because a limit is always applied. Option B is subtly incorrect; the code adds or subtracts 1 from the constants. Option D is incorrect because this scenario is a designed fallback, not an error condition.",
+      "title": "",
+      "id": "54477",
+      "text": "In the `swapUniswapV3` function, if the `sqrtX96` field in the decoded `Utils.UniswapV3Data` is `0`, what is the effective `sqrtPriceLimitX96` passed to the Uniswap V3 router's `exactInputSingle` function?",
+      "answers": [
+        "A value of `0`, indicating that no price limit is applied to the swap.",
+        "The exact value of `UniswapV3Lib.MIN_SQRT_RATIO` or `UniswapV3Lib.MAX_SQRT_RATIO`, depending on the swap direction.",
+        "A value slightly inside the pool's absolute price bounds (`MIN_SQRT_RATIO + 1` or `MAX_SQRT_RATIO - 1`), determined by the `zeroForOne` flag.",
+        "The function call will revert, as a `sqrtPriceLimitX96` of `0` is considered an invalid parameter."
+      ],
+      "correct": 2,
+      "explanation": "The correct answer is C. The code explicitly handles the case where `arg.sqrtX96` is `0`. It uses this as a signal to apply a default, non-restrictive price limit. This limit is set to one unit inside the absolute minimum or maximum possible square root price ratio for a V3 pool, depending on the swap direction (`zeroForOne`). This prevents the swap from reverting due to a missing limit while ensuring it doesn't accidentally fail by hitting the exact tick boundary. Option A is incorrect because a limit is always applied. Option B is subtly incorrect; the code adds or subtracts 1 from the constants. Option D is incorrect because this scenario is a designed fallback, not an error condition."
+    },
+    {
+      "type": "highlight",
+      "description": "`ExactInputSingleParams02` struct:\n\n- `tokenIn`, `tokenOut` – swap pair addresses\n- `fee` (`uint24`) – pool fee tier\n- `recipient` – output recipient\n- `amountIn`, `amountOutMinimum`\n- `sqrtPriceLimitX96` – price bound in X96 format",
+      "file": "swap-router-v1/src/executor/uniswap/IUniswapV3Router.sol",
+      "highlight": [
+        {
+          "start": 23,
+          "end": 31
+        }
+      ],
+      "title": "",
+      "id": "54464"
+    },
+    {
+      "type": "highlight",
+      "description": "**ExactInputParams** struct supports multi-hop swaps:\n\n`bytes path` – packed route: `abi.encodePacked(tokenA, feeAB, tokenB, feeBC, tokenC, ...)`\n\n`recipient`, `deadline`, `amountIn`, `amountOutMinimum`\n\nThe router parses 20-byte addresses + 3-byte fee tags into successive hops.",
+      "file": "swap-router-v1/src/executor/uniswap/IUniswapV3Router.sol",
+      "highlight": [
+        {
+          "start": 45,
+          "end": 53
+        }
+      ],
+      "title": "",
+      "id": "54465"
+    },
+    {
+      "type": "highlight",
+      "description": "For a Uniswap V3 swap, indicated by `swapType` 5, the adapter calls `swapUniswapV3`.",
+      "file": "swap-router-v1/src/adapter/mainnet/Adapter1.sol",
+      "highlight": [
+        {
+          "start": 62,
+          "end": 71
+        }
+      ],
+      "title": "",
+      "id": "54466"
+    },
+    {
+      "type": "textOnly",
+      "description": "That completes the tour. You now understand how `UniswapV3Lib.sol`’s constants, `UniswapV3Data` struct, and `swapUniswapV3` executor logic work together to perform swaps via Uniswap V3, and how adapters invoke this flow.",
+      "title": "",
+      "id": "54467"
+    }
+  ]
+}

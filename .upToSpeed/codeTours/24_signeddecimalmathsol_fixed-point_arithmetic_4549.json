@@ -1,0 +1,73 @@
+{
+  "title": "2.4: SignedDecimalMath.sol: Fixed-Point Arithmetic",
+  "id": "/PupwnE2DQXOlhd3I2HyFrGEIy2q2Sti6YKv8fll6go=",
+  "originalId": 4549,
+  "position": 5,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "We’ll examine how `SignedDecimalMath.sol` achieves fixed-point arithmetic with 18-decimal precision, then dive into its signed `decimalMul` and `decimalDiv` functions.",
+      "title": "",
+      "id": "54338"
+    },
+    {
+      "type": "highlight",
+      "description": "Defines the scale factor for 18-decimal fixed-point math. `SignedONE` = `int256(10**18)` encodes 1.0; `ONE` is its `uint256` counterpart for unsigned operations.",
+      "file": "swap-router-v1/src/library/SignedDecimalMath.sol",
+      "highlight": [
+        {
+          "start": 10,
+          "end": 12
+        }
+      ],
+      "title": "",
+      "id": "54339"
+    },
+    {
+      "type": "highlight",
+      "description": "`decimalMul(a, b)` treats `a` and `b` as 18-decimals-scaled. It computes `(a * b) / SignedONE` to rescale the 36-decimal product back to 18 decimals. Overflow in `a * b` would revert under Solidity 0.8. Integer division truncates toward zero. Example: `(2.5e18 * 3e18) / 1e18 = 7.5e18`.",
+      "file": "swap-router-v1/src/library/SignedDecimalMath.sol",
+      "highlight": [
+        {
+          "start": 13,
+          "end": 16
+        }
+      ],
+      "title": "",
+      "id": "54340"
+    },
+    {
+      "type": "highlight",
+      "description": "`decimalDiv(a, b)` rescales `a` by multiplying with `SignedONE`, then divides by `b`: `(a * SignedONE) / b`. An overflow in `a * SignedONE` reverts, and the result is truncated. Example: `(7.5e18 * 1e18) / 3e18 = 2.5e18`.",
+      "file": "swap-router-v1/src/library/SignedDecimalMath.sol",
+      "highlight": [
+        {
+          "start": 17,
+          "end": 20
+        }
+      ],
+      "title": "",
+      "id": "54341"
+    },
+    {
+      "type": "textOnly",
+      "description": "Because both operations use integer arithmetic, any fractional part below `1e-18` is dropped. Thanks to `Solidity` 0.8’s built-in checks, any intermediate overflow automatically reverts the transaction.",
+      "title": "",
+      "id": "54342"
+    },
+    {
+      "type": "mcq",
+      "description": "The `decimalDiv(a, b)` function calculates `(a * SignedONE) / b`. Which set of inputs demonstrates a scenario where the transaction would revert due to an intermediate overflow, even though the expected final result is valid and fits within `int256`?\n\nOptions:\n\n A). `a = 50 * 1e18`, `b = 100 * 1e18`\n\nB). `a = 2**210`, `b = 2**210`\n\nC). `a = 10 * 1e18`, `b = type(int256).max`\n\n\nCorrect: B). `a = 2**210`, `b = 2**210`\n\nExplanation: The correct answer is when `a` and `b` are `2**210`. The logical result of `a / b` is 1, so the function should return `1 * SignedONE` (`1e18`). However, the intermediate calculation `a * SignedONE` (or `2**210 * 1e18`) overflows `int256` because the required bit length (`~210 + log2(1e18) ≈ 210 + 60 = 270`) exceeds 255. The other options do not cause an overflow. A very large denominator causes precision loss (result is 0), not an overflow.",
+      "title": "",
+      "id": "54355",
+      "text": "The `decimalDiv(a, b)` function calculates `(a * SignedONE) / b`. Which set of inputs demonstrates a scenario where the transaction would revert due to an intermediate overflow, even though the expected final result is valid and fits within `int256`?",
+      "answers": [
+        "`a = 50 * 1e18`, `b = 100 * 1e18`",
+        "`a = 2**210`, `b = 2**210`",
+        "`a = 10 * 1e18`, `b = type(int256).max`"
+      ],
+      "correct": 1,
+      "explanation": "The correct answer is when `a` and `b` are `2**210`. The logical result of `a / b` is 1, so the function should return `1 * SignedONE` (`1e18`). However, the intermediate calculation `a * SignedONE` (or `2**210 * 1e18`) overflows `int256` because the required bit length (`~210 + log2(1e18) ≈ 210 + 60 = 270`) exceeds 255. The other options do not cause an overflow. A very large denominator causes precision loss (result is 0), not an overflow."
+    }
+  ]
+}
