@@ -12,7 +12,7 @@
     "2.6: UniswapV2Lib.sol: Uniswap V2 Integration",
     "2.7: UniswapV3Lib.sol: Uniswap V3 Integration",
     "3.1: Executor Adapters: Overview",
-    "4.1: Executor: Swap Execution Engine"
+    "4.1: Want to learn more?"
   ],
   "totalNumberOfSteps": 97,
   "filesCovered": [
